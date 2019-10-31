@@ -11,7 +11,7 @@ from torch.autograd import Variable
 import numpy as np
 import torchvision
 import torchvision.transforms as transforms
-import visdom
+#import visdom
 import os
 import sys
 import time
@@ -64,8 +64,8 @@ parser.add_argument('-noActnorm', '--noActnorm', dest='noActnorm', action='store
 parser.add_argument('--nonlin', default="elu", type=str, choices=["relu", "elu", "sorting", "softplus"])
 parser.add_argument('--dataset', default='cifar10', type=str, help='dataset')
 parser.add_argument('--save_dir', default=None, type=str, help='directory to save results')
-parser.add_argument('--vis_port', default=8097, type=int, help="port for visdom")
-parser.add_argument('--vis_server', default="localhost", type=str, help="server for visdom")
+#parser.add_argument('--vis_port', default=8097, type=int, help="port for visdom")
+#parser.add_argument('--vis_server', default="localhost", type=str, help="server for visdom")
 parser.add_argument('--log_every', default=10, type=int, help='logs every x iters')
 parser.add_argument('-log_verbose', '--log_verbose', dest='log_verbose', action='store_true',
                     help='verbose logging: sigmas, max gradient')
@@ -220,8 +220,8 @@ def main():
 
 
     # setup logging with visdom
-    viz = visdom.Visdom(port=args.vis_port, server="http://" + args.vis_server)
-    assert viz.check_connection(), "Could not make visdom"
+    #viz = visdom.Visdom(port=args.vis_port, server="http://" + args.vis_server)
+   #assert viz.check_connection(), "Could not make visdom"
 
     if args.deterministic:
         trainloader = torch.utils.data.DataLoader(trainset, batch_size=args.batch,
