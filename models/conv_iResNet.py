@@ -94,10 +94,10 @@ class conv_iresnet_block(nn.Module):
         kernel_size1 = 3 # kernel size for first conv
         layers.append(self._wrapper_spectral_norm(nn.Conv2d(in_ch, int_ch, kernel_size=kernel_size1, stride=1, padding=1),
                                                   (in_ch, h, w), kernel_size1))
-        layers.append(nonlin())
-        kernel_size2 = 1 # kernel size for second conv
-        layers.append(self._wrapper_spectral_norm(nn.Conv2d(int_ch, int_ch, kernel_size=kernel_size2, padding=0),
-                                                  (int_ch, h, w), kernel_size2))
+        #layers.append(nonlin())
+        #kernel_size2 = 1 # kernel size for second conv
+        #layers.append(self._wrapper_spectral_norm(nn.Conv2d(int_ch, int_ch, kernel_size=kernel_size2, padding=0),
+        #                                         (int_ch, h, w), kernel_size2))
         layers.append(nonlin())
         kernel_size3 = 3 # kernel size for third conv
         layers.append(self._wrapper_spectral_norm(nn.Conv2d(int_ch, in_ch, kernel_size=kernel_size3, padding=1),
@@ -129,7 +129,7 @@ class conv_iresnet_block(nn.Module):
         y = Fx + x
         return y, trace + an_logdet
 
-    def inverse(self, y, maxIter=100):
+    def inverse(self, y, maxIter=10):
         # inversion of ResNet-block (fixed-point iteration)
         x = y
         for iter_index in range(maxIter):
@@ -214,7 +214,7 @@ class scale_block(nn.Module):
             z1, z2 = self.split(z)
             return [z1, z2], trace
 
-    def inverse(self, z, z2=None, maxIter=100):
+    def inverse(self, z, z2=None, maxIter=10):
         if self.split is None:
             x = z
         else:
@@ -609,7 +609,7 @@ if __name__ == "__main__":
 
     diff = lambda x, y: (x - y).abs().sum()
     batch_size = 13
-    channels = 3
+    channels = 2
     h, w = 32, 32
     in_shape = (batch_size, channels, h, w)
     x = torch.randn((batch_size, channels, h, w), requires_grad=True)
@@ -631,7 +631,7 @@ if __name__ == "__main__":
         x_re = sb.inverse(z1, z2, i)
         print(i, diff(x, x_re))
 
-    resnet = conv_iResNet(in_shape[1:], [4, 4, 4], [1, 2, 2], [32, 32, 32],
+    resnet = conv_iResNet(in_shape[1:], [4, 4], [1, 2], [32, 32],
                           init_ds=2, density_estimation=True, actnorm=True)
     print(resnet.final_shape)
     z, lpz, tr = resnet(x)#, ignore_logdet=True)
@@ -639,7 +639,7 @@ if __name__ == "__main__":
         x_re = resnet.inverse(z, i)
         print("{} iters error {}".format(i, (x - x_re).abs().sum()))
 
-    resnet = multiscale_conv_iResNet(in_shape[1:], [4, 4, 4], [1, 2, 2], [32, 32, 32],
+    resnet = multiscale_conv_iResNet(in_shape[1:], [4, 4], [1, 2], [32, 32],
                                      True, 0, .9, True, None, True, 1, 5, True)
     out, logpz, tr = resnet(x)#, ignore_logdet=True)
     print(logpz)
