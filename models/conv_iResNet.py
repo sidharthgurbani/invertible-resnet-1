@@ -609,7 +609,7 @@ if __name__ == "__main__":
 
     diff = lambda x, y: (x - y).abs().sum()
     batch_size = 13
-    channels = 2
+    channels = 3
     h, w = 32, 32
     in_shape = (batch_size, channels, h, w)
     x = torch.randn((batch_size, channels, h, w), requires_grad=True)
