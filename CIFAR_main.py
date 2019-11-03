@@ -315,7 +315,8 @@ def main():
         else:
             model.set_num_terms(args.numSeriesTerms)
         model = torch.nn.DataParallel(model.module)
-        test(best_objective, args, model, start_epoch, testloader, viz, use_cuda, test_log)
+        #test(best_objective, args, model, start_epoch, testloader, viz, use_cuda, test_log)
+        test(best_objective, args, model, start_epoch, testloader, use_cuda, test_log)
         return
 
     print('|  Train Epochs: ' + str(args.epochs))
@@ -339,14 +340,16 @@ def main():
 
     for epoch in range(1, 1+args.epochs):
         start_time = time.time()
-        train(args, model, optimizer, epoch, trainloader, trainset, viz, use_cuda, train_log)
+        #train(args, model, optimizer, epoch, trainloader, trainset, viz, use_cuda, train_log)
+        train(args, model, optimizer, epoch, trainloader, trainset, use_cuda, train_log)
         epoch_time = time.time() - start_time
         elapsed_time += epoch_time
         print('| Elapsed time : %d:%02d:%02d' % (get_hms(elapsed_time)))
 
     print('Testing model')
     test_log = open(os.path.join(args.save_dir, "test_log.txt"), 'w')
-    test_objective = test(test_objective, args, model, epoch, testloader, viz, use_cuda, test_log)
+    #test_objective = test(test_objective, args, model, epoch, testloader, viz, use_cuda, test_log)
+    test_objective = test(test_objective, args, model, epoch, testloader, use_cuda, test_log)
     print('* Test results : objective = %.2f%%' % (test_objective))
     with open(os.path.join(args.save_dir, 'final.txt'), 'w') as f:
         f.write(str(test_objective))
