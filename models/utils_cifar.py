@@ -212,13 +212,18 @@ def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
             # visualization and samples
             if batch_idx == 0:
                 ## Testing purpose:
-                z1 = torch.zeros(16,1)
-                for i in range(16):
-                    z1[i,1]=(z[2*i,1]+z[2*i+1,1])/2
-                test_log.write("Batch_idx={}, size_z1 = {}, size_z= {}\n".format(batch_idx, len(z1), len(z)))   
+                zs1 = []
+                temp = z
+                for temp in z:
+                  z1 = torch.zeros(16,temp.size(1),temp.size(2),temp.size(3))
+                  for i in range(16): 
+                    z1[i] = (temp[2*i,:]+temp[2*i+1,:])/2
+                  z1 = z1.cuda()
+                  zs1.append(z1)   
                 ##
-                x_re = model.module.inverse(z1, 10) if use_cuda else model.inverse(z1, 10)
-                err = (inputs - x_re).abs().sum()
+                
+                x_re = model.module.inverse(zs1, 10) if use_cuda else model.inverse(zs1, 10)
+                #err = (inputs - x_re).abs().sum()
                 #line_plot(viz, "recons err", epoch, err.item())
                 bs = inputs.size(0)
                 samples = model.module.sample(bs, 10) if use_cuda else model.sample(bs, 10)
