@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision.utils
+from torchvision import transforms
 from torch.autograd import Variable
 from torch._six import inf
 #from models.viz_utils import line_plot, scatter_plot, images_plot
@@ -11,7 +12,7 @@ import math
 import numpy as np
 import json
 import pdb
-
+from PIL import Image
 import time
 
 
@@ -193,14 +194,14 @@ def train(args, model, optimizer, epoch, trainloader, trainset, use_cuda, train_
                 
 ## testing purpose
 imsize = 32
-loader = transforms.Compose([transforms.Scale(imsize), transforms.ToTensor()])
+loader = transforms.Compose([transforms.Resize(imsize), transforms.ToTensor()])
 
 def image_loader(image_name):
     """load image, returns cuda tensor"""
     image = Image.open(image_name)
     image = loader(image).float()
     image = Variable(image, requires_grad=True)
-    #image = image.unsqueeze(0)  #this is for VGG, may not be needed for ResNet
+    image = image.unsqueeze(0)  #this is for VGG, may not be needed for ResNet
     return image.cuda()  #assumes that you're using GPU
 
 ##
@@ -225,8 +226,17 @@ def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
             # visualization and samples
             if batch_idx == 0:
                 ## Testing purpose:
+                inputs1 = image_loader("results/dens_est_cifar/ims/recons_1_0.jpg")
+                temp_z, temp_logpz, temp_trace = model(inputs1)
+                print(inputs1.shape)
+                print(inputs.shape)
+                #print(temp_z.shape)
+                #print(z.shape)
+                l1 = model.classifier(z)
+                l2 = model.classifier(temp_z)
+                print(l1)
+                print(l2)
                 zs1 = []
-                temp = z
                 for temp in z:
                   z1 = torch.zeros(16,temp.size(1),temp.size(2),temp.size(3))
                   for i in range(16): 
@@ -245,27 +255,52 @@ def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
                 torchvision.utils.save_image(samples.cpu(),
                                              os.path.join(im_dir, "samples_{}.jpg".format(epoch)),
                                              int(bs**.5), normalize=True)
-                torchvision.utils.save_image(inputs.cpu(),
-                                             os.path.join(im_dir, "data_{}.jpg".format(epoch)),
-                                             int(bs ** .5), normalize=True)
-                torchvision.utils.save_image(x_re.cpu(),
-                                             os.path.join(im_dir, "recons_{}.jpg".format(epoch)),
-                                             int(bs ** .5), normalize=True)
+                for index1 in range(32):
+                  torchvision.utils.save_image(inputs[index1].cpu(),
+                                               os.path.join(im_dir, "data_{}_{}.jpg".format(epoch, index1)),
+                                               1, normalize=True)
+                for index2 in range(16):
+                  torchvision.utils.save_image(x_re[index2].cpu(),
+                                               os.path.join(im_dir, "recons_{}_{}.jpg".format(epoch, index2)),
+                                               1, normalize=True)
+                #torchvision.utils.save_image(inputs.cpu(),
+                #                             os.path.join(im_dir, "data_{}.jpg".format(epoch)),
+                #                             int(bs ** .5), normalize=True)
+                #torchvision.utils.save_image(x_re.cpu(),
+                #                             os.path.join(im_dir, "recons_{}.jpg".format(epoch)),
+                #                             int(bs ** .5), normalize=True)
                 #images_plot(viz, "data", out_im(inputs).cpu())
                 #images_plot(viz, "recons", out_im(x_re).cpu())
                 #images_plot(viz, "samples", out_im(samples).cpu())
-                del x_re, err, samples
+                #del x_re, err, samples
+                del x_re, samples
 
             del z, logpz, trace, logpx, loss
 
         else:
             ## testing purpose
             if batch_idx==0:
-                inputs1 = image_loader("results/dens_est_cifar/recons_1.jpg")
+                inputs1 = image_loader("results/dens_est_cifar/ims/recons_1_0.jpg")
+                print(inputs1.shape)
+                print(inputs.shape)
                 out1, out_bij1 = model(inputs)
                 out2, out_bij2 = model(inputs1)
-                print(out1.shape)
-                print(out2.shape)
+                zs1 = []
+                for temp in out_bij1:
+                  z1 = torch.zeros(1,temp.size(1),temp.size(2),temp.size(3)) 
+                  z1[0] = (temp[0,:]+temp[1,:])/2
+                  z1 = z1.cuda()
+                  zs1.append(z1)
+                #output_log = open(os.path.join(args.save_dir, "output_log.txt"), 'w')
+                #output_log.write("{}\n").format()
+                err = (out_bij2[-1] - zs1[-1]).abs().sum
+                print(err)
+                #print(out_bij1.shape)
+                #print(out_bij2.shape)
+                print(out1[0])
+                print(out1[1])
+                print(out2)
+                #del err
             ##
             out, out_bij = model(inputs)
             _, predicted = torch.max(out.data, 1)
