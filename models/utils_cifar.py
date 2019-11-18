@@ -281,24 +281,34 @@ def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
             ## testing purpose
             if batch_idx==0:
                 inputs1 = image_loader("results/dens_est_cifar/ims/recons_1_0.jpg")
+                #inputs1 = torch.zeros(1,inputs.size(1),inputs.size(2),inputs.size(3))
+                #inputs1[0] = (inputs[0] + inputs[1])/2
+                inputs1 = inputs1.cuda()
                 print(inputs1.shape)
-                print(inputs.shape)
-                out1, out_bij1 = model(inputs)
+                out10, out_bij10 = model(inputs[0:1])
+                out11, out_bij11 = model(inputs[1:2])
                 out2, out_bij2 = model(inputs1)
-                zs1 = []
-                for temp in out_bij1:
-                  z1 = torch.zeros(1,temp.size(1),temp.size(2),temp.size(3)) 
-                  z1[0] = (temp[0,:]+temp[1,:])/2
-                  z1 = z1.cuda()
-                  zs1.append(z1)
+                #zs1 = []
+                #for temp in out_bij1:
+                 # z1 = torch.zeros(1,temp.size(1),temp.size(2),temp.size(3)) 
+                 # z1[0] = (temp[0,:]+temp[1,:])/2
+                 # z1 = z1.cuda()
+                 # zs1.append(z1)
                 #output_log = open(os.path.join(args.save_dir, "output_log.txt"), 'w')
                 #output_log.write("{}\n").format()
-                err = (out_bij2[-1] - zs1[-1]).abs().sum
-                print(err)
+                #err = (out_bij2[-1] - zs1[-1]).abs().sum
+                #print(err)
                 #print(out_bij1.shape)
                 #print(out_bij2.shape)
-                print(out1[0])
-                print(out1[1])
+                #print(out_bij2[-1])
+                #print(zs1[-1])
+                #torch.save(out_bij2[-1], 'recons_tensor_out.pt')
+                #torch.save(zs1[-1], 'averaged_out_tensor_out.pt')
+                #print(out_bij10)
+                #print(out_bij11)
+                #print(out_bij2)
+                print(out10)
+                print(out11)
                 print(out2)
                 #del err
             ##
