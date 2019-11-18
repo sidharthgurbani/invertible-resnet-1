@@ -190,7 +190,20 @@ def train(args, model, optimizer, epoch, trainloader, trainset, use_cuda, train_
                                     (len(trainset)//args.batch)+1, loss.data.item(),
                                     100.*correct.type(torch.FloatTensor)/float(total)))
                 sys.stdout.flush()
+                
+## testing purpose
+imsize = 32
+loader = transforms.Compose([transforms.Scale(imsize), transforms.ToTensor()])
 
+def image_loader(image_name):
+    """load image, returns cuda tensor"""
+    image = Image.open(image_name)
+    image = loader(image).float()
+    image = Variable(image, requires_grad=True)
+    #image = image.unsqueeze(0)  #this is for VGG, may not be needed for ResNet
+    return image.cuda()  #assumes that you're using GPU
+
+##
 
 #def test(best_result, args, model, epoch, testloader, viz, use_cuda, test_log):
 def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
@@ -246,6 +259,14 @@ def test(best_result, args, model, epoch, testloader, use_cuda, test_log):
             del z, logpz, trace, logpx, loss
 
         else:
+            ## testing purpose
+            if batch_idx==0:
+                inputs1 = image_loader("results/dens_est_cifar/recons_1.jpg")
+                out1, out_bij1 = model(inputs)
+                out2, out_bij2 = model(inputs1)
+                print(out1.shape)
+                print(out2.shape)
+            ##
             out, out_bij = model(inputs)
             _, predicted = torch.max(out.data, 1)
             objective += predicted.eq(targets.data).sum().item()
